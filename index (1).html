@@ -1,0 +1,2831 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>أرباحي | منصة الاستثمار المتكاملة</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        /* ========== المتغيرات العامة للثيم ========== */
+        :root {
+            --bg-color: #0c1a32;
+            --card-bg: #122644;
+            --border-color: #2a5faa;
+            --text-primary: #fff;
+            --text-secondary: #9ab4d4;
+            --gold: #ffd700;
+            --success: #8bc34a;
+            --danger: #ff6b6b;
+            --warning: #f0b400;
+        }
+
+        /* الثيم النهاري (light mode) */
+        body.light-mode {
+            --bg-color: #f0f4fa;
+            --card-bg: #ffffff;
+            --border-color: #2a5faa;
+            --text-primary: #0c1a32;
+            --text-secondary: #4a6a8a;
+            --gold: #d4af37;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding: 8px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* ======== الهيدر ======== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 8px 12px;
+            border-radius: 40px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-color);
+            padding: 4px 15px;
+            border-radius: 40px;
+            border: 1px solid var(--border-color);
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .logo h1 {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-name {
+            background: var(--border-color);
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .user-name i {
+            color: var(--gold);
+        }
+
+        .notification-bell, .refresh-btn {
+            position: relative;
+            cursor: pointer;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .notification-bell i, .refresh-btn i {
+            font-size: 1rem;
+            color: var(--gold);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: #fff;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .theme-toggle i {
+            font-size: 1rem;
+            color: var(--gold);
+        }
+
+        .menu-container {
+            position: relative;
+        }
+
+        .menu-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 5px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .menu-btn i {
+            color: var(--gold);
+        }
+
+        .menu-dropdown {
+            position: absolute;
+            top: 120%;
+            left: 0;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 8px;
+            min-width: 200px;
+            border: 1px solid var(--border-color);
+            display: none;
+            z-index: 1000;
+        }
+
+        .menu-dropdown.show {
+            display: block;
+        }
+
+        .menu-item {
+            padding: 10px 15px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .menu-item:hover {
+            background: var(--border-color);
+            color: #fff;
+        }
+
+        .menu-item i {
+            width: 20px;
+            color: var(--gold);
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--gold);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 16px;
+            width: fit-content;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gold);
+            cursor: pointer;
+        }
+
+        .card-title i {
+            font-size: 1rem;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 15px;
+            color: var(--gold);
+            font-size: 1rem;
+        }
+
+        .input-field {
+            width: 100%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 45px;
+            padding: 12px 45px 12px 15px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .input-field::placeholder {
+            color: #5a7a9a;
+        }
+
+        .btn {
+            background: var(--border-color);
+            color: #fff;
+            border: none;
+            border-radius: 45px;
+            padding: 14px;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .btn i {
+            color: var(--gold);
+        }
+
+        .btn-success {
+            background: #2b7a4b;
+        }
+
+        .btn-warning {
+            background: #f0b400;
+            color: #000;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--bg-color);
+            padding: 5px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 45px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .tab.active {
+            background: var(--border-color);
+            color: #fff;
+        }
+
+        .balance-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .balance-item {
+            background: var(--bg-color);
+            border-radius: 16px;
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .balance-item .label {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            white-space: nowrap;
+        }
+
+        .balance-item .value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--gold);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .plan-item {
+            background: var(--bg-color);
+            border-radius: 18px;
+            padding: 15px 5px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .plan-item:hover {
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+
+        .plan-item .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .plan-item .name {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .plan-item .percent {
+            color: var(--gold);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .plan-item .range {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .plan-item .withdraw-options {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 8px;
+            font-size: 0.7rem;
+        }
+
+        .withdraw-icon {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .withdraw-icon .yes {
+            color: var(--success);
+        }
+
+        .withdraw-icon .no {
+            color: var(--danger);
+        }
+
+        .bronze .icon { color: #cd7f32; }
+        .silver .icon { color: #c0c0c0; }
+        .gold .icon { color: var(--gold); }
+        .partner .icon { color: #ff69b4; }
+
+        /* ======== سجل المعاملات المحسن ======== */
+        .transactions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-left: 5px;
+        }
+
+        .transaction-card {
+            background: var(--bg-color);
+            border-radius: 12px;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+        }
+
+        .transaction-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .transaction-type {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .transaction-type i {
+            font-size: 0.8rem;
+        }
+
+        .transaction-type.deposit i { color: var(--success); }
+        .transaction-type.withdraw i { color: var(--danger); }
+
+        .transaction-type span {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .transaction-amount {
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .transaction-amount.deposit { color: var(--success); }
+        .transaction-amount.withdraw { color: var(--danger); }
+
+        .transaction-date {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+        }
+
+        .gift-card {
+            background: linear-gradient(145deg, var(--card-bg), var(--bg-color));
+            border-radius: 22px;
+            padding: 12px;
+            border: 1px solid var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            margin: 12px 0;
+        }
+
+        .gift-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-color);
+            font-size: 1.3rem;
+        }
+
+        .gift-text h4 {
+            color: var(--gold);
+            font-size: 0.95rem;
+        }
+
+        .gift-text p {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .gift-locked {
+            color: var(--text-secondary);
+        }
+
+        .gift-unlocked {
+            color: var(--success);
+        }
+
+        .daily-bonus {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 12px 0;
+            border: 1px solid var(--gold);
+            cursor: pointer;
+        }
+
+        .daily-bonus .bonus-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .daily-bonus .bonus-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-color);
+        }
+
+        .daily-bonus .bonus-amount {
+            color: var(--gold);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .info-item {
+            background: var(--bg-color);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .info-item .label {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+        }
+
+        .info-item .value {
+            color: var(--gold);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        /* ======== عداد تقدم سحب رأس المال ======== */
+        .capital-progress {
+            background: var(--bg-color);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid var(--gold);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gold);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-days {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-days span {
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .footer-link:hover {
+            color: var(--gold);
+        }
+
+        .terms-agreement {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 15px 0;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .terms-agreement input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--gold);
+        }
+
+        .forgot-password {
+            text-align: left;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .forgot-password a {
+            color: var(--gold);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .payment-methods, .withdraw-methods {
+            margin: 15px 0;
+        }
+
+        .method-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .method-item.selected {
+            border: 2px solid var(--gold);
+        }
+
+        .method-item i {
+            color: var(--gold);
+            font-size: 1.2rem;
+        }
+
+        .method-detail {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: var(--card-bg);
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin-top: 5px;
+            width: 100%;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .method-detail button {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .method-detail button:hover {
+            background: var(--gold);
+            color: var(--bg-color);
+        }
+
+        .network-select {
+            width: 100%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 8px 15px;
+            color: var(--text-primary);
+            margin-top: 5px;
+        }
+
+        .notes-box {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 10px;
+            margin: 10px 0;
+            color: var(--gold);
+            font-size: 0.85rem;
+            border-right: 3px solid var(--gold);
+        }
+
+        /* نافذة الدردشة المباشرة */
+        .chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+
+        .chat-button {
+            width: 60px;
+            height: 60px;
+            background: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .chat-button:hover {
+            transform: scale(1.1);
+        }
+
+        .chat-frame {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 300px;
+            height: 400px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            border: 2px solid var(--gold);
+        }
+
+        .chat-frame iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .chat-frame.show {
+            display: block;
+        }
+
+        /* لوحة الإشعارات المنبثقة */
+        .notifications-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(12,26,50,0.95);
+            z-index: 2000;
+            display: none;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .notifications-panel.show {
+            display: block;
+        }
+
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .notifications-header h3 {
+            color: var(--gold);
+        }
+
+        .close-btn {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .notification-item {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-right: 3px solid var(--gold);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .notification-item:hover {
+            opacity: 0.9;
+        }
+
+        .notification-item.unread {
+            border-right: 3px solid var(--danger);
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .notification-item .time {
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+
+        /* فلتر المعاملات */
+        .transaction-filters {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .filter-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .filter-btn.active {
+            background: var(--border-color);
+            color: #fff;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+            color: var(--gold);
+        }
+
+        .loading-spinner i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        /* ======== قسم الإحالات المحسن ======== */
+        .referrals-list {
+            margin-top: 15px;
+        }
+
+        .referral-item {
+            background: var(--bg-color);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .referral-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .referral-name {
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .referral-email {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            word-break: break-word;
+        }
+
+        .referral-date {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .referral-status {
+            font-size: 0.65rem;
+            color: var(--success);
+        }
+
+        .referral-profit {
+            color: var(--success);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .total-earnings {
+            background: var(--bg-color);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid var(--gold);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .plan-status {
+            background: var(--bg-color);
+            border-radius: 12px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid var(--warning);
+            text-align: center;
+        }
+
+        .plan-status.waiting {
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .plan-status.approved {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        /* مؤقت العد التنازلي */
+        .countdown-timer {
+            text-align: center;
+            padding: 15px;
+            background: var(--bg-color);
+            border-radius: 16px;
+            border: 1px solid var(--gold);
+        }
+
+        .timer-display {
+            font-size: 2.5rem;
+            color: var(--gold);
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .expected-profit {
+            color: var(--success);
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+        
+        /* ======== أنماط جديدة للمستخدمين المحذوفين ======== */
+        .restore-message {
+            background: #1a2e4e;
+            border: 1px solid #ffd700;
+            border-radius: 30px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .restore-message i {
+            color: #ffd700;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .restore-message h3 {
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+        
+        .restore-message p {
+            color: #9ab4d4;
+            margin-bottom: 15px;
+        }
+        
+        .restore-btn {
+            background: #ffd700;
+            color: #0c1a32;
+            border: none;
+            border-radius: 30px;
+            padding: 10px 20px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="notification" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--gold); color:#000; padding:10px 20px; border-radius:40px; z-index:9999; display:none;"></div>
+
+    <!-- لوحة الإشعارات -->
+    <div id="notificationsPanel" class="notifications-panel">
+        <div class="notifications-header">
+            <h3><i class="fas fa-bell" style="color:var(--gold);"></i> الإشعارات</h3>
+            <div class="close-btn" onclick="closeNotifications()">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        <div id="notificationsList"></div>
+    </div>
+
+    <!-- عنصر الدردشة المباشرة -->
+    <div class="chat-widget">
+        <div class="chat-button" onclick="toggleChat()">
+            <i class="fab fa-whatsapp"></i>
+        </div>
+        <div id="chatFrame" class="chat-frame">
+            <!-- سيتم تعبئة الرابط لاحقاً من إعدادات Firebase -->
+        </div>
+    </div>
+
+    <div id="app"></div>
+
+    <script>
+        // ========== تهيئة Firebase ==========
+        const firebaseConfig = { 
+            databaseURL: "https://newa-3604b-default-rtdb.firebaseio.com/" 
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // ========== متغيرات عامة ==========
+        let currentUser = null;
+        let currentUserId = null;
+        let selectedPaymentMethod = 'sham';
+        let selectedWithdrawMethod = 'sham';
+        let paymentSettings = {};
+        let chatSettings = {};
+        let referralCodeFromUrl = null;
+        let dailyProfit = 0;
+        let countdownInterval = null;
+        
+        // ========== تخزين بيانات المستخدمين المحذوفين محلياً ==========
+        let deletedUsers = JSON.parse(localStorage.getItem('deletedUsers') || '{}');
+
+        // ========== قراءة معامل ref من URL ==========
+        function getReferralCodeFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('ref');
+        }
+
+        // ========== الإشعارات ==========
+        function showNotification(msg, isError = false) {
+            const notif = document.getElementById('notification');
+            notif.style.background = isError ? '#b33c3c' : 'var(--gold)';
+            notif.style.color = isError ? '#fff' : '#000';
+            notif.innerText = msg;
+            notif.style.display = 'block';
+            setTimeout(() => notif.style.display = 'none', 3000);
+        }
+
+        function openNotifications() {
+            document.getElementById('notificationsPanel').classList.add('show');
+            loadNotifications();
+        }
+
+        function closeNotifications() {
+            document.getElementById('notificationsPanel').classList.remove('show');
+        }
+
+        async function loadNotifications() {
+            if (!currentUserId) return;
+            
+            const container = document.getElementById('notificationsList');
+            const badge = document.getElementById('notificationBadge');
+            
+            const notifSnap = await db.ref('notifications').orderByChild('userId').equalTo(currentUserId).once('value');
+            const notifications = notifSnap.val() || {};
+            
+            let unread = 0;
+            let html = '';
+            
+            const sorted = Object.entries(notifications).sort((a, b) => new Date(b[1].createdAt) - new Date(a[1].createdAt));
+            
+            for (let [id, n] of sorted) {
+                if (!n.read) {
+                    unread++;
+                }
+                const date = n.createdAt ? new Date(n.createdAt).toLocaleString('ar-EG') : '';
+                const readClass = n.read ? '' : 'unread';
+                html += `
+                    <div class="notification-item ${readClass}" onclick="markNotificationAsRead('${id}')">
+                        <div>${n.message}</div>
+                        <div class="time">${date}</div>
+                    </div>
+                `;
+            }
+            
+            if (badge) badge.innerText = unread;
+            container.innerHTML = html || '<div class="notification-item">لا توجد إشعارات</div>';
+        }
+
+        async function markNotificationAsRead(notifId) {
+            await db.ref('notifications/' + notifId).update({ read: true });
+            loadNotifications();
+        }
+
+        // ========== التحقق من الجلسة مع استرجاع المستخدمين المحذوفين ==========
+        window.onload = function() {
+            referralCodeFromUrl = getReferralCodeFromUrl();
+            const savedUserId = localStorage.getItem('currentUserId');
+            
+            if (savedUserId) {
+                // التحقق من وجود المستخدم في Firebase
+                db.ref('users/' + savedUserId).once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        // المستخدم موجود
+                        currentUserId = savedUserId;
+                        loadUserData(savedUserId);
+                    } else {
+                        // المستخدم محذوف - مسح الجلسة
+                        console.log('المستخدم محذوف، مسح الجلسة');
+                        localStorage.removeItem('currentUserId');
+                        showAuthPage();
+                        
+                        // عرض رسالة للمستخدم
+                        setTimeout(() => {
+                            showNotification('تم تحديث النظام، يمكنك استعادة حسابك', false);
+                        }, 1000);
+                    }
+                });
+            } else {
+                showAuthPage();
+            }
+        };
+
+        // ========== دالة استرجاع المستخدم المحذوف ==========
+        async function restoreDeletedUser(email, password) {
+            // البحث في localStorage عن المستخدم
+            for (let id in deletedUsers) {
+                if (deletedUsers[id].email === email && deletedUsers[id].password === password) {
+                    // إعادة إنشاء المستخدم في Firebase
+                    const newUserRef = db.ref('users').push();
+                    const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+                    
+                    await newUserRef.set({
+                        ...deletedUsers[id],
+                        referralCode: referralCode,
+                        restoredAt: new Date().toISOString()
+                    });
+                    
+                    // حذف من localStorage بعد الاسترجاع
+                    delete deletedUsers[id];
+                    localStorage.setItem('deletedUsers', JSON.stringify(deletedUsers));
+                    
+                    showNotification('✅ تم استرجاع حسابك بنجاح');
+                    
+                    // تسجيل الدخول مباشرة
+                    currentUserId = newUserRef.key;
+                    currentUser = deletedUsers[id];
+                    localStorage.setItem('currentUserId', newUserRef.key);
+                    loadUserData(newUserRef.key);
+                    
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // ========== عرض الصفحات ==========
+        function renderApp(content) {
+            document.getElementById('app').innerHTML = content;
+        }
+
+        // ========== صفحة المصادقة مع إضافة خيار استرجاع الحساب ==========
+        function showAuthPage() {
+            const html = `
+                <div class="container">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
+                            <h1>أرباحي</h1>
+                        </div>
+                        <div class="user-menu">
+                            <div class="user-name" onclick="showAuthPage()">
+                                <i class="fas fa-user-circle"></i> زائر
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab('login')">تسجيل دخول</div>
+                        <div class="tab" onclick="switchTab('signup')">إنشاء حساب</div>
+                    </div>
+
+                    <div id="login-section">
+                        <div class="card">
+                            <div class="input-group">
+                                <label>البريد الإلكتروني</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    <input class="input-field" type="email" id="loginEmail" placeholder="example@domain.com">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>كلمة المرور</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock input-icon"></i>
+                                    <input class="input-field" type="password" id="loginPassword" placeholder="********">
+                                </div>
+                            </div>
+                            
+                            <div class="forgot-password">
+                                <a href="#" onclick="showNotification('تواصل مع الدعم', true); return false;">نسيت كلمة المرور؟</a>
+                            </div>
+                            
+                            <button class="btn" onclick="login()">
+                                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                            </button>
+                            
+                            <div style="text-align:center; margin:10px 0;">
+                                <span style="color:#9ab4d4;">أو</span>
+                            </div>
+                            
+                            <button class="btn btn-warning" onclick="showRestoreForm()">
+                                <i class="fas fa-undo-alt"></i> استرجاع حساب قديم
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="signup-section" style="display:none;">
+                        <div class="card">
+                            <div class="input-group">
+                                <label>الاسم الكامل</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-user input-icon"></i>
+                                    <input class="input-field" type="text" id="signupName" placeholder="أحمد محمد">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>البريد الإلكتروني</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    <input class="input-field" type="email" id="signupEmail" placeholder="example@domain.com">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>كلمة المرور</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock input-icon"></i>
+                                    <input class="input-field" type="password" id="signupPassword" placeholder="********">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>تأكيد كلمة المرور</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-check-circle input-icon"></i>
+                                    <input class="input-field" type="password" id="signupConfirm" placeholder="********">
+                                </div>
+                            </div>
+                            
+                            <div class="terms-agreement">
+                                <input type="checkbox" id="termsAgreement">
+                                <label>أوافق على الشروط والأحكام</label>
+                            </div>
+                            
+                            <button class="btn" onclick="signup()">
+                                <i class="fas fa-user-plus"></i> إنشاء حساب
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="restore-section" style="display:none;">
+                        <div class="card">
+                            <div class="card-title"><i class="fas fa-undo-alt"></i> استرجاع حساب قديم</div>
+                            <p style="color:#9ab4d4; margin-bottom:15px;">إذا كان لديك حساب سابق وتم حذفه، يمكنك استرجاعه بنفس البيانات</p>
+                            
+                            <div class="input-group">
+                                <label>البريد الإلكتروني القديم</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    <input class="input-field" type="email" id="restoreEmail" placeholder="example@domain.com">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>كلمة المرور القديمة</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock input-icon"></i>
+                                    <input class="input-field" type="password" id="restorePassword" placeholder="********">
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-success" onclick="restoreAccount()">
+                                <i class="fas fa-check-circle"></i> استرجاع الحساب
+                            </button>
+                            
+                            <button class="btn" onclick="showAuthPage()" style="margin-top:10px;">
+                                <i class="fas fa-arrow-right"></i> العودة
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="gift-card" onclick="claimWelcomeGift()">
+                        <div class="gift-icon"><i class="fas fa-gift"></i></div>
+                        <div class="gift-text">
+                            <h4>🎁 هدية الترحيب 10$</h4>
+                            <p>تضاف للحساب بعد الاشتراك بأي خطة وتُسحب بعد 30 يوم</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            renderApp(html);
+        }
+
+        function showRestoreForm() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('signup-section').style.display = 'none';
+            document.getElementById('restore-section').style.display = 'block';
+        }
+
+        function switchTab(tab) {
+            document.getElementById('login-section').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('signup-section').style.display = tab === 'signup' ? 'block' : 'none';
+            document.getElementById('restore-section').style.display = 'none';
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        // ========== إنشاء حساب مع كود الإحالة ==========
+        async function signup() {
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const pass = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+            const terms = document.getElementById('termsAgreement').checked;
+
+            if (!name || !email || !pass || !confirm) {
+                showNotification('❌ جميع الحقول مطلوبة', true);
+                return;
+            }
+            if (pass !== confirm) {
+                showNotification('❌ كلمة المرور غير متطابقة', true);
+                return;
+            }
+            if (pass.length < 6) {
+                showNotification('❌ كلمة المرور 6 أحرف على الأقل', true);
+                return;
+            }
+            if (!terms) {
+                showNotification('❌ يجب الموافقة على الشروط', true);
+                return;
+            }
+
+            const usersRef = db.ref('users');
+            const snapshot = await usersRef.orderByChild('email').equalTo(email).once('value');
+            if (snapshot.val()) {
+                showNotification('❌ البريد مستخدم بالفعل', true);
+                return;
+            }
+
+            const newUserRef = usersRef.push();
+            const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+            
+            const joinDate = new Date().toISOString();
+
+            // تعيين المُحيل إذا كان موجوداً في الرابط
+            let referredBy = null;
+            if (referralCodeFromUrl) {
+                const usersSnap = await usersRef.once('value');
+                const users = usersSnap.val();
+                for (let id in users) {
+                    if (users[id].referralCode === referralCodeFromUrl && id !== newUserRef.key) {
+                        referredBy = id;
+                        break;
+                    }
+                }
+            }
+
+            await newUserRef.set({
+                name, email, password: pass,
+                accountStatus: 'نشط',
+                totalBalance: 0, capitalBalance: 0, profitBalance: 0,
+                referralBalance: 0, referralCode, referredBy: referredBy,
+                plan: 'none', 
+                planStatus: 'none',
+                welcomeGiftClaimed: false,
+                welcomeGiftUnlockDate: null,
+                dailyBonusDate: null, 
+                createdAt: joinDate,
+                planStartDate: null,
+                profitHistory: [],
+                hasDeposited: false,
+                investmentAmount: 0,
+                profitRate: 0,
+                lastDailyProfitDate: null
+            });
+            
+            showNotification('✅ تم إنشاء الحساب بنجاح');
+            switchTab('login');
+        }
+
+        // ========== استرجاع الحساب المحذوف ==========
+        async function restoreAccount() {
+            const email = document.getElementById('restoreEmail').value.trim();
+            const pass = document.getElementById('restorePassword').value;
+
+            if (!email || !pass) {
+                showNotification('❌ البريد وكلمة المرور مطلوبان', true);
+                return;
+            }
+
+            // محاولة استرجاع الحساب
+            const restored = await restoreDeletedUser(email, pass);
+            
+            if (!restored) {
+                showNotification('❌ لم يتم العثور على حساب قديم بهذه البيانات', true);
+            }
+        }
+
+        // ========== تسجيل الدخول المعدل ==========
+        async function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPassword').value;
+
+            if (!email || !pass) {
+                showNotification('❌ البريد وكلمة المرور مطلوبان', true);
+                return;
+            }
+
+            const usersRef = db.ref('users');
+            usersRef.once('value', (snapshot) => {
+                const users = snapshot.val();
+                for (let id in users) {
+                    if (users[id].email === email && users[id].password === pass) {
+                        currentUserId = id;
+                        currentUser = users[id];
+                        localStorage.setItem('currentUserId', id);
+                        loadUserData(id);
+                        return;
+                    }
+                }
+                
+                // إذا لم يتم العثور على المستخدم، عرض خيار الاسترجاع
+                showNotification('❌ الحساب غير موجود. يمكنك استرجاع حسابك القديم', true);
+                
+                // عرض نموذج الاسترجاع
+                setTimeout(() => {
+                    showRestoreForm();
+                    document.getElementById('restoreEmail').value = email;
+                    document.getElementById('restorePassword').value = pass;
+                }, 2000);
+            });
+        }
+
+        // ========== تحميل بيانات المستخدم ==========
+        function loadUserData(userId) {
+            db.ref('users/' + userId).on('value', (snapshot) => {
+                const user = snapshot.val();
+                if (!user) {
+                    // المستخدم محذوف، حفظ نسخة في localStorage
+                    if (currentUser) {
+                        deletedUsers[userId] = currentUser;
+                        localStorage.setItem('deletedUsers', JSON.stringify(deletedUsers));
+                    }
+                    
+                    localStorage.removeItem('currentUserId');
+                    currentUser = null;
+                    currentUserId = null;
+                    
+                    showNotification('❌ تم حذف حسابك. يمكنك استرجاعه الآن', true);
+                    showAuthPage();
+                    return;
+                }
+                currentUser = user;
+                
+                // حساب الربح اليومي
+                calculateDailyProfit();
+                
+                showUserDashboard(user, userId);
+            });
+        }
+
+        // ========== حساب الربح اليومي ==========
+        function calculateDailyProfit() {
+            if (!currentUser || !currentUser.plan || currentUser.plan === 'none' || currentUser.planStatus !== 'approved') {
+                dailyProfit = 0;
+                return;
+            }
+            
+            const investment = currentUser.investmentAmount || currentUser.capitalBalance || 0;
+            const rate = currentUser.profitRate || 0;
+            
+            // الربح اليومي = (المبلغ * نسبة الربح الشهرية) / 30
+            dailyProfit = (investment * rate / 100) / 30;
+        }
+
+        // ========== حساب الوقت المتبقي لآخر اليوم ==========
+        function getTimeRemaining() {
+            const now = new Date();
+            const endOfDay = new Date(now);
+            endOfDay.setHours(24, 0, 0, 0);
+            const diff = endOfDay - now;
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            return { hours, minutes, seconds, total: diff };
+        }
+
+        // ========== بدء العد التنازلي ==========
+        function startCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            countdownInterval = setInterval(() => {
+                const timeRemaining = getTimeRemaining();
+                const timerElement = document.getElementById('countdownTimer');
+                const expectedProfitElement = document.getElementById('expectedProfit');
+                
+                if (timerElement) {
+                    timerElement.innerText = `${timeRemaining.hours.toString().padStart(2, '0')}:${timeRemaining.minutes.toString().padStart(2, '0')}:${timeRemaining.seconds.toString().padStart(2, '0')}`;
+                }
+                
+                if (expectedProfitElement) {
+                    expectedProfitElement.innerText = `$${dailyProfit.toFixed(2)}`;
+                }
+                
+                // إذا انتهى الوقت (آخر اليوم)
+                if (timeRemaining.total <= 1000) {
+                    addDailyProfit();
+                }
+            }, 1000);
+        }
+
+        // ========== إضافة الربح اليومي التلقائي ==========
+        async function addDailyProfit() {
+            if (!currentUserId || dailyProfit <= 0) return;
+            
+            const today = new Date().toDateString();
+            
+            // التأكد من عدم إضافة الربح لنفس اليوم مرتين
+            if (currentUser.lastDailyProfitDate === today) return;
+            
+            const newProfit = (currentUser.profitBalance || 0) + dailyProfit;
+            const newTotal = (currentUser.totalBalance || 0) + dailyProfit;
+            
+            await db.ref('users/' + currentUserId).update({
+                profitBalance: newProfit,
+                totalBalance: newTotal,
+                lastDailyProfitDate: today
+            });
+            
+            // إضافة إشعار
+            await db.ref('notifications').push({
+                userId: currentUserId,
+                message: `💰 تم إضافة أرباح يومية بقيمة $${dailyProfit.toFixed(2)}`,
+                category: 'financial',
+                read: false,
+                createdAt: new Date().toISOString()
+            });
+            
+            showNotification(`✅ تم إضافة $${dailyProfit.toFixed(2)} من الأرباح اليومية`);
+        }
+
+        // ========== تحميل إعدادات الدردشة ==========
+        async function loadChatSettings() {
+            const snap = await db.ref('paymentSettings').once('value');
+            const settings = snap.val() || {};
+            const whatsappNumber = settings.whatsapp || '';
+            
+            if (whatsappNumber) {
+                const chatFrame = document.getElementById('chatFrame');
+                chatFrame.innerHTML = `
+                    <div style="padding:20px; background:white; height:100%; display:flex; flex-direction:column;">
+                        <h3 style="color:#0c1a32; margin-bottom:15px;">الدردشة المباشرة</h3>
+                        <p style="color:#666; margin-bottom:20px;">تواصل معنا مباشرة عبر واتساب</p>
+                        <a href="https://wa.me/${whatsappNumber.replace(/\D/g, '')}" target="_blank" style="background:#25D366; color:white; padding:15px; border-radius:30px; text-align:center; text-decoration:none; margin-top:auto;">
+                            <i class="fab fa-whatsapp"></i> بدء المحادثة
+                        </a>
+                    </div>
+                `;
+                document.querySelector('.chat-widget').style.display = 'block';
+            } else {
+                document.querySelector('.chat-widget').style.display = 'none';
+            }
+        }
+
+        function toggleChat() {
+            const frame = document.getElementById('chatFrame');
+            frame.classList.toggle('show');
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        }
+
+        function toggleMenu() {
+            document.getElementById('menuDropdown').classList.toggle('show');
+        }
+
+        window.onclick = function(e) {
+            if (!e.target.closest('.menu-container')) {
+                const menu = document.getElementById('menuDropdown');
+                if (menu) menu.classList.remove('show');
+            }
+        };
+
+        function getCapitalProgress() {
+            if (!currentUser || !currentUser.plan || currentUser.plan === 'none' || !currentUser.planStartDate) return null;
+            
+            const planStart = new Date(currentUser.planStartDate);
+            const now = new Date();
+            
+            let freezeDays = 0;
+            if (currentUser.plan === 'برونزي') freezeDays = 90;
+            else if (currentUser.plan === 'فضي') freezeDays = 45;
+            else if (currentUser.plan === 'ذهبي') freezeDays = 30;
+            else if (currentUser.plan === 'شريك') freezeDays = 0;
+            
+            if (freezeDays === 0) return { daysLeft: 0, progress: 100, canWithdraw: true };
+            
+            const endDate = new Date(planStart);
+            endDate.setDate(endDate.getDate() + freezeDays);
+            
+            if (now >= endDate) {
+                return { daysLeft: 0, progress: 100, canWithdraw: true };
+            } else {
+                const elapsed = now - planStart;
+                const total = freezeDays * 24 * 60 * 60 * 1000;
+                const progress = Math.min(100, Math.round((elapsed / total) * 100));
+                const diffTime = endDate - now;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return { daysLeft: diffDays, progress: progress, canWithdraw: false };
+            }
+        }
+
+        function getWelcomeGiftStatus(user) {
+            if (user.welcomeGiftClaimed) {
+                return { text: 'تم استلام الهدية', class: 'gift-locked' };
+            }
+            if (!user.plan || user.plan === 'none') {
+                return { text: 'اشترك بأي خطة لتحصل على 10$', class: 'gift-locked' };
+            }
+            if (!user.welcomeGiftUnlockDate) {
+                return { text: 'اضغط لاستلام الهدية (قابلة للسحب بعد 30 يوم)', class: 'gift-unlocked' };
+            }
+            const unlockDate = new Date(user.welcomeGiftUnlockDate);
+            const today = new Date();
+            if (today >= unlockDate) {
+                return { text: 'الهدية جاهزة للسحب', class: 'gift-unlocked' };
+            }
+            const daysLeft = Math.ceil((unlockDate - today) / (1000 * 60 * 60 * 24));
+            return { text: `الهدية متاحة - متبقي ${daysLeft} يوم للسحب`, class: 'gift-locked' };
+        }
+
+        function showUserDashboard(user, userId) {
+            const welcomeGiftStatus = getWelcomeGiftStatus(user);
+            const timeRemaining = getTimeRemaining();
+            
+            if (localStorage.getItem('theme') === 'light') {
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+            }
+
+            const capitalProgress = getCapitalProgress();
+            
+            let planStatusHtml = '';
+            if (user.plan && user.plan !== 'none') {
+                if (user.planStatus === 'waiting') {
+                    planStatusHtml = `
+                        <div class="plan-status waiting">
+                            <i class="fas fa-clock"></i> خطتك قيد المراجعة من الإدارة
+                        </div>
+                    `;
+                } else if (user.planStatus === 'approved') {
+                    planStatusHtml = `
+                        <div class="plan-status approved">
+                            <i class="fas fa-check-circle"></i> خطتك مفعلة ✓
+                        </div>
+                    `;
+                }
+            }
+            
+            const html = `
+                <div class="container">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
+                            <h1>أرباحي</h1>
+                        </div>
+                        <div class="user-menu">
+                            <div class="notification-bell" onclick="openNotifications()">
+                                <i class="fas fa-bell"></i>
+                                <span class="notification-badge" id="notificationBadge">0</span>
+                            </div>
+                            <div class="refresh-btn" onclick="refreshUpdates()">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <div class="theme-toggle" onclick="toggleTheme()">
+                                <i class="fas fa-moon"></i>
+                            </div>
+                            <div class="user-name">${user.name || 'مستخدم'}</div>
+                            <div class="menu-container">
+                                <div class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+                                <div class="menu-dropdown" id="menuDropdown">
+                                    <div class="menu-item" onclick="showUserDashboard(currentUser, '${userId}')"><i class="fas fa-home"></i> الرئيسية</div>
+                                    <div class="menu-item" onclick="showPlansPage()"><i class="fas fa-layer-group"></i> خطط الاستثمار</div>
+                                    <div class="menu-item" onclick="showWithdrawPage()"><i class="fas fa-arrow-up"></i> سحب</div>
+                                    <div class="menu-item" onclick="showReferralsPage()"><i class="fas fa-gift"></i> الإحالات</div>
+                                    <div class="menu-item" onclick="showTransactionsPage()"><i class="fas fa-history"></i> المعاملات</div>
+                                    <div class="menu-item" onclick="showProfilePage()"><i class="fas fa-user"></i> حسابي</div>
+                                    <div class="menu-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${planStatusHtml}
+
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-wallet"></i> محفظتي</div>
+                        <div class="balance-grid">
+                            <div class="balance-item"><div class="label">الرصيد الكلي</div><div class="value">$${(user.totalBalance || 0).toFixed(2)}</div></div>
+                            <div class="balance-item"><div class="label">رأس المال</div><div class="value">$${(user.capitalBalance || 0).toFixed(2)}</div></div>
+                            <div class="balance-item" onclick="showWithdrawPage()"><div class="label">الأرباح</div><div class="value" style="color:var(--success);">$${(user.profitBalance || 0).toFixed(2)}</div></div>
+                        </div>
+                        
+                        ${user.plan && user.plan !== 'none' && user.planStartDate && capitalProgress ? `
+                            <div class="capital-progress">
+                                <div class="progress-header">
+                                    <span>⏳ الوقت المتبقي لسحب رأس المال</span>
+                                    <span>${capitalProgress.canWithdraw ? '✅ متاح' : capitalProgress.daysLeft + ' يوم'}</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${capitalProgress.progress}%;"></div>
+                                </div>
+                                <div class="progress-days">
+                                    <span>${capitalProgress.progress}%</span> من المدة المطلوبة
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    ${user.plan && user.plan !== 'none' && ['فضي', 'ذهبي', 'شريك'].includes(user.plan) && user.planStatus === 'approved' ? `
+                        <div class="daily-bonus" onclick="claimDailyBonus()">
+                            <div class="bonus-info">
+                                <div class="bonus-icon"><i class="fas fa-sun"></i></div>
+                                <div><h4 style="color:var(--gold);">☀️ مكافأة يومية</h4><p style="color:var(--text-secondary);">0.10$ كل يوم</p></div>
+                            </div>
+                            <div class="bonus-amount">0.10$</div>
+                        </div>
+                    ` : ''}
+
+                    <div class="gift-card" onclick="claimWelcomeGift()">
+                        <div class="gift-icon"><i class="fas fa-gift"></i></div>
+                        <div class="gift-text">
+                            <h4>🎁 هدية الترحيب 10$</h4>
+                            <p>${welcomeGiftStatus.text}</p>
+                        </div>
+                    </div>
+
+                    ${user.plan && user.plan !== 'none' && user.planStatus === 'approved' ? `
+                        <div class="card">
+                            <div class="card-title"><i class="fas fa-clock"></i> موعد إضافة الأرباح</div>
+                            <div class="countdown-timer">
+                                <div class="timer-display" id="countdownTimer">
+                                    ${timeRemaining.hours.toString().padStart(2, '0')}:${timeRemaining.minutes.toString().padStart(2, '0')}:${timeRemaining.seconds.toString().padStart(2, '0')}
+                                </div>
+                                <div style="color:var(--text-secondary);">متبقي حتى إضافة أرباح اليوم</div>
+                                <div class="expected-profit">
+                                    أرباح اليوم المتوقعة: <span id="expectedProfit">$${dailyProfit.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-history"></i> آخر المعاملات</div>
+                        <div id="transactionsList">
+                            <div class="loading-spinner"><i class="fas fa-spinner fa-pulse"></i><p>جاري التحميل...</p></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title" onclick="toggleAbout()" style="cursor:pointer;">
+                            <i class="fas fa-info-circle"></i> من نحن <i class="fas fa-chevron-down" style="margin-right:auto;"></i>
+                        </div>
+                        <div id="about-content" style="display:none;">
+                            <p style="color:var(--text-secondary); line-height:1.6;">منصة أرباحي هي منصة استثمارية رقمية تهدف إلى تمكين المستخدمين من تحقيق أرباح شهرية من خلال خطط استثمارية مرنة وآمنة. تأسست المنصة في 2025 لتوفير بيئة استثمارية شفافة ومربحة للجميع. نحن نؤمن بأن الاستثمار يجب أن يكون متاحاً للجميع، ولذلك وفرنا خططاً تبدأ من 10$ فقط.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title" onclick="toggleFaq()" style="cursor:pointer;">
+                            <i class="fas fa-question-circle"></i> الأسئلة الشائعة <i class="fas fa-chevron-down" style="margin-right:auto;"></i>
+                        </div>
+                        <div id="faq-content" style="display:none;">
+                            <div class="faq-item" onclick="toggleFaqItem(this)">
+                                <div class="faq-question">
+                                    <span>كيف أربح من المنصة؟</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="faq-answer">
+                                    من خلال خطط الاستثمار (8-35% سنوياً) والإحالات. كل خطة لها عائد شهري مختلف حسب المبلغ المستثمر.
+                                </div>
+                            </div>
+                            <div class="faq-item" onclick="toggleFaqItem(this)">
+                                <div class="faq-question">
+                                    <span>متى يمكن سحب الأرباح؟</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="faq-answer">
+                                    الأرباح متاحة للسحب حسب شروط كل خطة. رأس المال يمكن سحبه حسب مدة التجميد المبينة في الخطة.
+                                </div>
+                            </div>
+                            <div class="faq-item" onclick="toggleFaqItem(this)">
+                                <div class="faq-question">
+                                    <span>ما هي هدية الترحيب؟</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="faq-answer">
+                                    10$ تضاف لحسابك بعد الاشتراك بأي خطة وتصبح قابلة للسحب بعد 30 يوم.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title" onclick="toggleSupport()" style="cursor:pointer;">
+                            <i class="fas fa-headset"></i> دعم العملاء <i class="fas fa-chevron-down" style="margin-right:auto;"></i>
+                        </div>
+                        <div id="support-content" style="display:none;">
+                            <div class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>support@arbahe.com</span>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>+963 123 456 789</span>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fab fa-whatsapp"></i>
+                                <span>+963 123 456 789</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            renderApp(html);
+            loadUserTransactions(userId);
+            loadNotifications();
+            loadChatSettings();
+            
+            // بدء العد التنازلي إذا كانت الخطة مفعلة
+            if (user.plan && user.plan !== 'none' && user.planStatus === 'approved') {
+                startCountdown();
+            }
+        }
+
+        function refreshUpdates() {
+            loadNotifications();
+            showNotification('✅ تم تحديث الإشعارات');
+        }
+
+        function toggleAbout() {
+            const content = document.getElementById('about-content');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleFaq() {
+            const content = document.getElementById('faq-content');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleFaqItem(element) {
+            element.classList.toggle('active');
+        }
+
+        function toggleSupport() {
+            const content = document.getElementById('support-content');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function claimDailyBonus() {
+            if (!currentUserId) return;
+            
+            if (!currentUser.plan || !['فضي', 'ذهبي', 'شريك'].includes(currentUser.plan) || currentUser.planStatus !== 'approved') {
+                showNotification('❌ المكافأة اليومية متاحة فقط للمشتركين في الخطط الفضية فما فوق', true);
+                return;
+            }
+            
+            const today = new Date().toDateString();
+            if (currentUser.dailyBonusDate === today) {
+                showNotification('✅ استلمت المكافأة اليوم', true);
+                return;
+            }
+            
+            const newProfit = (currentUser.profitBalance || 0) + 0.10;
+            const newTotal = (currentUser.totalBalance || 0) + 0.10;
+            
+            await db.ref('users/' + currentUserId).update({
+                profitBalance: newProfit,
+                totalBalance: newTotal,
+                dailyBonusDate: today
+            });
+            
+            showNotification('✅ تمت إضافة 0.10$ مكافأة يومية');
+        }
+
+        async function claimWelcomeGift() {
+            if (!currentUserId) {
+                showNotification('❌ سجل دخول أولاً', true);
+                return;
+            }
+            
+            if (currentUser.welcomeGiftClaimed) {
+                showNotification('✅ استلمت الهدية مسبقاً', true);
+                return;
+            }
+
+            if (!currentUser.plan || currentUser.plan === 'none') {
+                showNotification('❌ يجب الاشتراك في خطة أولاً', true);
+                return;
+            }
+
+            if (!currentUser.welcomeGiftUnlockDate) {
+                const unlockDate = new Date();
+                unlockDate.setDate(unlockDate.getDate() + 30);
+                
+                const newProfit = (currentUser.profitBalance || 0) + 10;
+                const newTotal = (currentUser.totalBalance || 0) + 10;
+                
+                await db.ref('users/' + currentUserId).update({
+                    profitBalance: newProfit,
+                    totalBalance: newTotal,
+                    welcomeGiftClaimed: true,
+                    welcomeGiftUnlockDate: unlockDate.toISOString()
+                });
+                
+                showNotification('✅ تمت إضافة 10$ هدية الترحيب، قابلة للسحب بعد 30 يوم');
+                loadUserData(currentUserId);
+                return;
+            }
+
+            const unlockDate = new Date(currentUser.welcomeGiftUnlockDate);
+            const today = new Date();
+            
+            if (today < unlockDate) {
+                const daysLeft = Math.ceil((unlockDate - today) / (1000 * 60 * 60 * 24));
+                showNotification(`⏳ الهدية قابلة للسحب بعد ${daysLeft} يوم`, true);
+                return;
+            }
+        }
+
+        function showPlansPage() {
+            const html = `
+                <div class="container">
+                    <div class="back-button" onclick="loadUserData('${currentUserId}')"><i class="fas fa-arrow-right"></i> العودة</div>
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-layer-group"></i> خطط الاستثمار</div>
+                        <div class="plans-grid">
+                            <div class="plan-item bronze" onclick="selectPlan('برونزي', 10, 200, 8, 14, 90)">
+                                <div class="icon"><i class="fas fa-medal"></i></div>
+                                <div class="name">برونزي</div>
+                                <div class="percent">8-14%</div>
+                                <div class="range">10$ - 200$</div>
+                                <div class="withdraw-options">
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-day no"></i> <span class="no">يومي</span></div>
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-week no"></i> <span class="no">أسبوعي</span></div>
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-alt yes"></i> <span class="yes">شهري</span></div>
+                                </div>
+                                <div class="range" style="color:var(--text-secondary);">سحب رأس المال بعد 90 يوم</div>
+                            </div>
+                            <div class="plan-item silver" onclick="selectPlan('فضي', 200, 1000, 14, 18, 45)">
+                                <div class="icon"><i class="fas fa-star"></i></div>
+                                <div class="name">فضي</div>
+                                <div class="percent">14-18%</div>
+                                <div class="range">200$ - 1000$</div>
+                                <div class="withdraw-options">
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-day no"></i> <span class="no">يومي</span></div>
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-week yes"></i> <span class="yes">أسبوعي</span></div>
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-alt yes"></i> <span class="yes">شهري</span></div>
+                                </div>
+                                <div class="range" style="color:var(--text-secondary);">سحب رأس المال بعد 45 يوم</div>
+                            </div>
+                            <div class="plan-item gold" onclick="selectPlan('ذهبي', 1000, 2000, 18, 25, 30)">
+                                <div class="icon"><i class="fas fa-crown"></i></div>
+                                <div class="name">ذهبي</div>
+                                <div class="percent">18-25%</div>
+                                <div class="range">1000$ - 2000$</div>
+                                <div class="withdraw-options">
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-day yes"></i> <span class="yes">يومي</span></div>
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-week yes"></i> <span class="yes">أسبوعي</span></div>
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-alt yes"></i> <span class="yes">شهري</span></div>
+                                </div>
+                                <div class="range" style="color:var(--text-secondary);">سحب رأس المال بعد 30 يوم</div>
+                            </div>
+                            <div class="plan-item partner" onclick="selectPlan('شريك', 5000, 100000, 25, 35, 0)">
+                                <div class="icon"><i class="fas fa-handshake"></i></div>
+                                <div class="name">شريك</div>
+                                <div class="percent">25-35%</div>
+                                <div class="range">5000$ +</div>
+                                <div class="withdraw-options">
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-day yes"></i> <span class="yes">يومي</span></div>
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-week yes"></i> <span class="yes">أسبوعي</span></div>
+                                    <div class="withdraw-icon"><i class="fas fa-calendar-alt yes"></i> <span class="yes">شهري</span></div>
+                                </div>
+                                <div class="range" style="color:var(--text-secondary);">سحب رأس المال في أي وقت</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            renderApp(html);
+        }
+
+        function selectPlan(plan, min, max, minP, maxP, freezeDays) {
+            showPaymentPage(plan, min, max, minP, maxP, freezeDays);
+        }
+
+        async function loadPaymentSettings() {
+            const snap = await db.ref('paymentSettings').once('value');
+            paymentSettings = snap.val() || {};
+        }
+
+        async function showPaymentPage(plan, min, max, minP, maxP, freezeDays) {
+            await loadPaymentSettings();
+            
+            const html = `
+                <div class="container">
+                    <div class="back-button" onclick="showPlansPage()"><i class="fas fa-arrow-right"></i> العودة للخطط</div>
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-credit-card"></i> إتمام الدفع</div>
+                        
+                        <div style="background:var(--bg-color); border-radius:16px; padding:15px; margin-bottom:15px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                <span class="label">الخطة:</span>
+                                <span style="color:var(--gold);">${plan}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span class="label">نسبة الربح:</span>
+                                <span style="color:var(--gold);">${minP}-${maxP}%</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                                <span class="label">الحد الأدنى:</span>
+                                <span style="color:var(--gold);">$${min.toFixed(2)}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span class="label">الحد الأقصى:</span>
+                                <span style="color:var(--gold);">$${max.toFixed(2)}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                                <span class="label">تجميد رأس المال:</span>
+                                <span style="color:var(--gold);">${freezeDays === 0 ? 'قابل للسحب فوراً' : freezeDays + ' يوم'}</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label>المبلغ ($)</label>
+                            <input type="number" id="paymentAmount" class="input-field" value="${min}" min="${min}" max="${max}" step="0.01" oninput="calculateProfit(${minP}, ${maxP})">
+                        </div>
+
+                        <div style="background:var(--card-bg); border-radius:16px; padding:15px; text-align:center; margin:15px 0;">
+                            <div class="label">الربح الشهري المتوقع:</div>
+                            <div style="color:var(--gold); font-size:1.3rem;" id="paymentProfit">$${((min * minP) / 100).toFixed(2)} - $${((min * maxP) / 100).toFixed(2)}</div>
+                        </div>
+
+                        <div class="payment-methods">
+                            <div class="method-item" onclick="selectPaymentMethod('sham')" id="method-sham">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <i class="fas fa-university"></i>
+                                    <span>شام كاش</span>
+                                </div>
+                                <div id="detail-sham" class="method-detail" style="display:none;"></div>
+                            </div>
+                            <div class="method-item" onclick="selectPaymentMethod('crypto')" id="method-crypto">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <i class="fas fa-coins"></i>
+                                    <span>USDT</span>
+                                </div>
+                                <div id="detail-crypto" class="method-detail" style="display:none;"></div>
+                            </div>
+                            <div class="method-item" onclick="selectPaymentMethod('paypal')" id="method-paypal">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <i class="fab fa-paypal"></i>
+                                    <span>باي بال</span>
+                                </div>
+                                <div id="detail-paypal" class="method-detail" style="display:none;"></div>
+                            </div>
+                            <div class="method-item" onclick="selectPaymentMethod('bank')" id="method-bank">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <i class="fas fa-university"></i>
+                                    <span>تحويل بنكي</span>
+                                </div>
+                                <div id="detail-bank" class="method-detail" style="display:none;"></div>
+                            </div>
+                        </div>
+
+                        ${paymentSettings.notes ? `
+                            <div class="notes-box">
+                                <i class="fas fa-info-circle"></i> ${paymentSettings.notes}
+                            </div>
+                        ` : ''}
+
+                        <button class="btn btn-whatsapp" onclick="sendWhatsApp('${plan}', ${min}, ${max}, ${freezeDays})">
+                            <i class="fab fa-whatsapp"></i> إرسال عبر واتساب
+                        </button>
+                    </div>
+                </div>
+            `;
+            renderApp(html);
+            
+            updatePaymentDetails();
+        }
+
+        function calculateProfit(minP, maxP) {
+            const amount = parseFloat(document.getElementById('paymentAmount').value) || 0;
+            const minProfit = (amount * minP / 100).toFixed(2);
+            const maxProfit = (amount * maxP / 100).toFixed(2);
+            document.getElementById('paymentProfit').innerHTML = `$${minProfit} - $${maxProfit}`;
+        }
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('.method-item').forEach(el => el.classList.remove('selected'));
+            document.getElementById('method-' + method).classList.add('selected');
+            
+            document.querySelectorAll('.method-detail').forEach(el => el.style.display = 'none');
+            
+            const detailEl = document.getElementById(`detail-${method}`);
+            if (detailEl) {
+                let detailText = '';
+                if (method === 'sham' && paymentSettings.sham) {
+                    detailText = `📱 شام كاش: ${paymentSettings.sham}`;
+                } else if (method === 'crypto' && paymentSettings.usdt) {
+                    detailText = `💰 USDT (TRC20): ${paymentSettings.usdt}`;
+                } else if (method === 'paypal' && paymentSettings.paypal) {
+                    detailText = `📧 باي بال: ${paymentSettings.paypal}`;
+                } else if (method === 'bank' && paymentSettings.iban) {
+                    detailText = `🏦 IBAN: ${paymentSettings.iban}<br>👤 الاسم: ${paymentSettings.ibanName || '---'}`;
+                }
+                
+                if (detailText) {
+                    const copyText = detailText.replace(/<br>.*/, '').replace(/.*: /, '');
+                    detailEl.innerHTML = detailText + ' <button onclick="copyToClipboard(\'' + copyText + '\')"><i class="fas fa-copy"></i> نسخ</button>';
+                    detailEl.style.display = 'flex';
+                } else {
+                    detailEl.innerHTML = '⚠️ لم يتم تحديد عنوان لهذه الطريقة بعد';
+                    detailEl.style.display = 'flex';
+                }
+            }
+        }
+
+        function updatePaymentDetails() {
+            selectPaymentMethod(selectedPaymentMethod);
+        }
+
+        async function sendWhatsApp(plan, min, max, freezeDays) {
+            if (!currentUserId) return;
+            
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            if (!amount || amount < min || amount > max) {
+                showNotification(`❌ المبلغ يجب أن يكون بين $${min.toFixed(2)} و $${max.toFixed(2)}`, true);
+                return;
+            }
+            
+            if (!paymentSettings.whatsapp) {
+                showNotification('❌ رقم واتساب المشرف غير مضبوط، تواصل مع الدعم', true);
+                return;
+            }
+            
+            let phone = paymentSettings.whatsapp.replace(/\D/g, '');
+            
+            const message = `🔔 *طلب إيداع جديد*\n\n👤 المستخدم: ${currentUser.name}\n📧 البريد: ${currentUser.email}\n💰 المبلغ: $${amount.toFixed(2)}\n📋 الخطة: ${plan}\n💳 طريقة الدفع: ${selectedPaymentMethod}\n⏳ تجميد رأس المال: ${freezeDays === 0 ? 'قابل للسحب فوراً' : freezeDays + ' يوم'}\n🕐 الوقت: ${new Date().toLocaleString('ar-EG')}`;
+            
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+            
+            try {
+                await db.ref('deposits').push({
+                    userId: currentUserId,
+                    userName: currentUser.name,
+                    amount: amount,
+                    plan: plan,
+                    method: selectedPaymentMethod,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                });
+                
+                showNotification('✅ تم إرسال الطلب عبر واتساب، في انتظار المراجعة');
+            } catch (error) {
+                showNotification('❌ فشل حفظ الطلب: ' + error.message, true);
+            }
+        }
+
+        // ========== صفحة السحب المعدلة (مع إظهار الخيارات حسب الخطة) ==========
+        function showWithdrawPage() {
+            const user = currentUser;
+            const plan = user.plan;
+            
+            // تحديد الخيارات المسموح بها حسب الخطة
+            let showDaily = false, showWeekly = false, showMonthly = false;
+            
+            if (plan === 'ذهبي' || plan === 'شريك') {
+                showDaily = true;
+                showWeekly = true;
+                showMonthly = true;
+            } else if (plan === 'فضي') {
+                showDaily = false;
+                showWeekly = true;
+                showMonthly = true;
+            } else if (plan === 'برونزي') {
+                showDaily = false;
+                showWeekly = false;
+                showMonthly = true;
+            }
+            
+            const html = `
+                <div class="container">
+                    <div class="back-button" onclick="loadUserData('${currentUserId}')">
+                        <i class="fas fa-arrow-right"></i> العودة
+                    </div>
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-arrow-up"></i> سحب الأرباح</div>
+                        
+                        <div style="background:var(--bg-color); border-radius:16px; padding:15px; margin-bottom:15px;">
+                            <div style="display:flex; justify-content:space-between;">
+                                <span>الأرباح المتاحة:</span>
+                                <span style="color:var(--success);">$${(user.profitBalance || 0).toFixed(2)}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-top:5px;">
+                                <span>خطتك:</span>
+                                <span style="color:var(--gold);">${plan || 'غير مشترك'}</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label>المبلغ</label>
+                            <input type="number" id="withdrawAmount" class="input-field" placeholder="أدخل المبلغ" step="0.01">
+                        </div>
+
+                        <div class="withdraw-methods">
+                            ${showDaily ? `
+                                <div class="method-item" onclick="selectWithdrawMethod('daily')" id="wmethod-daily">
+                                    <i class="fas fa-calendar-day"></i>
+                                    <span>سحب يومي</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${showWeekly ? `
+                                <div class="method-item" onclick="selectWithdrawMethod('weekly')" id="wmethod-weekly">
+                                    <i class="fas fa-calendar-week"></i>
+                                    <span>سحب أسبوعي</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${showMonthly ? `
+                                <div class="method-item" onclick="selectWithdrawMethod('monthly')" id="wmethod-monthly">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>سحب شهري</span>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="method-item" onclick="selectWithdrawMethod('sham')" id="wmethod-sham">
+                                <i class="fas fa-university"></i>
+                                <span>شام كاش</span>
+                            </div>
+                            <div class="method-item" onclick="selectWithdrawMethod('usdt')" id="wmethod-usdt">
+                                <i class="fas fa-coins"></i>
+                                <span>USDT</span>
+                            </div>
+                            <div class="method-item" onclick="selectWithdrawMethod('paypal')" id="wmethod-paypal">
+                                <i class="fab fa-paypal"></i>
+                                <span>باي بال</span>
+                            </div>
+                            <div class="method-item" onclick="selectWithdrawMethod('local')" id="wmethod-local">
+                                <i class="fas fa-globe"></i>
+                                <span>حوالة أرضية</span>
+                            </div>
+                        </div>
+
+                        <!-- حقول الإدخال حسب الطريقة المختارة -->
+                        <div id="daily-withdraw-info" style="display:none;">
+                            <div class="notes-box">
+                                <i class="fas fa-info-circle"></i> السحب اليومي متاح حسب رصيد أرباحك
+                            </div>
+                        </div>
+
+                        <div id="weekly-withdraw-info" style="display:none;">
+                            <div class="notes-box">
+                                <i class="fas fa-info-circle"></i> السحب الأسبوعي متاح حسب رصيد أرباحك
+                            </div>
+                        </div>
+
+                        <div id="monthly-withdraw-info" style="display:none;">
+                            <div class="notes-box">
+                                <i class="fas fa-info-circle"></i> السحب الشهري متاح حسب رصيد أرباحك
+                            </div>
+                        </div>
+
+                        <div id="sham-withdraw-info" style="display:none;">
+                            <div class="input-group"><label>رقم المحفظة</label><input type="text" id="shamWallet" class="input-field" placeholder="أدخل رقم المحفظة"></div>
+                            <div class="input-group"><label>الاسم الكامل</label><input type="text" id="shamName" class="input-field" placeholder="الاسم كما في المحفظة"></div>
+                        </div>
+
+                        <div id="usdt-withdraw-info" style="display:none;">
+                            <div class="input-group">
+                                <label>الشبكة</label>
+                                <select id="usdtNetwork" class="network-select">
+                                    <option value="TRC20">TRC20</option>
+                                    <option value="BEP20">BEP20</option>
+                                    <option value="ERC20">ERC20</option>
+                                </select>
+                            </div>
+                            <div class="input-group"><label>عنوان المحفظة</label><input type="text" id="usdtAddress" class="input-field" placeholder="أدخل عنوان USDT"></div>
+                        </div>
+
+                        <div id="paypal-withdraw-info" style="display:none;">
+                            <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="paypalEmail" class="input-field" placeholder="example@domain.com"></div>
+                        </div>
+
+                        <div id="local-withdraw-info" style="display:none;">
+                            <div class="notes-box">
+                                <i class="fas fa-info-circle"></i> للحوالات الأرضية، يرجى التواصل مع فريق الدعم عبر الدردشة المباشرة أو واتساب.
+                            </div>
+                        </div>
+
+                        <button class="btn" onclick="requestWithdraw()">طلب سحب</button>
+                    </div>
+                </div>
+            `;
+            renderApp(html);
+        }
+
+        function selectWithdrawMethod(method) {
+            selectedWithdrawMethod = method;
+            document.querySelectorAll('.method-item').forEach(el => el.classList.remove('selected'));
+            document.getElementById('wmethod-' + method).classList.add('selected');
+            
+            // إخفاء كل الحقول
+            document.getElementById('sham-withdraw-info').style.display = 'none';
+            document.getElementById('usdt-withdraw-info').style.display = 'none';
+            document.getElementById('paypal-withdraw-info').style.display = 'none';
+            document.getElementById('local-withdraw-info').style.display = 'none';
+            document.getElementById('daily-withdraw-info').style.display = 'none';
+            document.getElementById('weekly-withdraw-info').style.display = 'none';
+            document.getElementById('monthly-withdraw-info').style.display = 'none';
+            
+            // إظهار الحقل المناسب
+            if (method === 'sham') {
+                document.getElementById('sham-withdraw-info').style.display = 'block';
+            } else if (method === 'usdt') {
+                document.getElementById('usdt-withdraw-info').style.display = 'block';
+            } else if (method === 'paypal') {
+                document.getElementById('paypal-withdraw-info').style.display = 'block';
+            } else if (method === 'local') {
+                document.getElementById('local-withdraw-info').style.display = 'block';
+            } else if (method === 'daily') {
+                document.getElementById('daily-withdraw-info').style.display = 'block';
+            } else if (method === 'weekly') {
+                document.getElementById('weekly-withdraw-info').style.display = 'block';
+            } else if (method === 'monthly') {
+                document.getElementById('monthly-withdraw-info').style.display = 'block';
+            }
+        }
+
+        async function requestWithdraw() {
+            if (!currentUserId) return;
+            
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            if (!amount || amount <= 0) {
+                showNotification('❌ أدخل مبلغ صحيح', true);
+                return;
+            }
+            
+            if (amount > (currentUser.profitBalance || 0)) {
+                showNotification('❌ المبلغ أكبر من الأرباح', true);
+                return;
+            }
+
+            let details = {};
+            let errorMsg = '';
+
+            if (selectedWithdrawMethod === 'sham') {
+                const wallet = document.getElementById('shamWallet').value;
+                const name = document.getElementById('shamName').value;
+                if (!wallet || !name) {
+                    errorMsg = '❌ يرجى ملء جميع الحقول';
+                } else {
+                    details = { wallet, name };
+                }
+            } else if (selectedWithdrawMethod === 'usdt') {
+                const network = document.getElementById('usdtNetwork').value;
+                const address = document.getElementById('usdtAddress').value;
+                if (!address) {
+                    errorMsg = '❌ يرجى إدخال عنوان المحفظة';
+                } else {
+                    details = { network, address };
+                }
+            } else if (selectedWithdrawMethod === 'paypal') {
+                const email = document.getElementById('paypalEmail').value;
+                if (!email) {
+                    errorMsg = '❌ يرجى إدخال البريد الإلكتروني';
+                } else {
+                    details = { email };
+                }
+            } else if (selectedWithdrawMethod === 'local') {
+                details = { type: 'حوالة أرضية' };
+            } else if (selectedWithdrawMethod === 'daily' || selectedWithdrawMethod === 'weekly' || selectedWithdrawMethod === 'monthly') {
+                details = { period: selectedWithdrawMethod };
+            }
+
+            if (errorMsg) {
+                showNotification(errorMsg, true);
+                return;
+            }
+
+            await db.ref('withdrawals').push({
+                userId: currentUserId,
+                userName: currentUser.name,
+                userEmail: currentUser.email,
+                amount: amount,
+                method: selectedWithdrawMethod,
+                details: details,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
+            
+            showNotification('✅ تم تقديم طلب السحب، قيد المراجعة');
+        }
+
+        async function showReferralsPage() {
+            const referralsSnap = await db.ref('users').orderByChild('referredBy').equalTo(currentUserId).once('value');
+            const referrals = referralsSnap.val() || {};
+            const count = Object.keys(referrals).length;
+            
+            let html = `
+                <div class="container">
+                    <div class="back-button" onclick="loadUserData('${currentUserId}')"><i class="fas fa-arrow-right"></i> العودة</div>
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-gift"></i> الإحالات</div>
+                        
+                        <div class="total-earnings">
+                            <span>إجمالي أرباح الإحالات:</span>
+                            <span style="color:var(--gold);">$${(currentUser.referralBalance || 0).toFixed(2)}</span>
+                        </div>
+                        
+                        <div style="background:var(--bg-color); border:1px dashed var(--gold); border-radius:30px; padding:12px; margin:10px 0; display:flex; align-items:center; justify-content:space-between;">
+                            <span style="color:var(--gold);">${window.location.origin}/?ref=${currentUser.referralCode}</span>
+                            <button style="background:var(--gold); color:var(--bg-color); border:none; border-radius:20px; padding:5px 15px;" onclick="copyToClipboard('${window.location.origin}/?ref=${currentUser.referralCode}')">نسخ</button>
+                        </div>
+                        
+                        <div style="display:flex; justify-content:space-between; margin:10px 0;">
+                            <span>عدد المسجلين عبرك:</span>
+                            <span style="color:var(--gold);">${count}</span>
+                        </div>
+                        
+                        <div class="referrals-list">
+                            <h4 style="color:var(--gold); margin:10px 0;">📋 قائمة المحالين</h4>
+            `;
+            
+            if (count > 0) {
+                const sorted = Object.entries(referrals).sort((a, b) => new Date(b[1].createdAt) - new Date(a[1].createdAt));
+                for (let [id, ref] of sorted) {
+                    const date = ref.createdAt ? new Date(ref.createdAt).toLocaleDateString('ar-EG') : 'غير معروف';
+                    const isActive = ref.hasDeposited ? '✅ قام بالإيداع' : '⏳ لم يقم بالإيداع بعد';
+                    const profitEarned = ref.hasDeposited ? 3 : 0;
+                    
+                    html += `
+                        <div class="referral-item">
+                            <div class="referral-info">
+                                <span class="referral-name">${ref.name || 'مستخدم'}</span>
+                                <span class="referral-email">${ref.email || ''}</span>
+                                <span class="referral-date">${date}</span>
+                                <span class="referral-status">${isActive}</span>
+                            </div>
+                            <div class="referral-profit">+$${profitEarned.toFixed(2)}</div>
+                        </div>
+                    `;
+                }
+            } else {
+                html += '<p style="color:var(--text-secondary); text-align:center;">لا يوجد محالين بعد</p>';
+            }
+            
+            html += `
+                        </div>
+                        <button class="btn" onclick="transferReferral()">تحويل للرصيد</button>
+                    </div>
+                </div>
+            `;
+            
+            renderApp(html);
+        }
+
+        async function transferReferral() {
+            if (currentUser.referralBalance <= 0) {
+                showNotification('لا يوجد أرباح للتحويل', true);
+                return;
+            }
+            
+            await db.ref('users/' + currentUserId).update({
+                totalBalance: (currentUser.totalBalance || 0) + currentUser.referralBalance,
+                profitBalance: (currentUser.profitBalance || 0) + currentUser.referralBalance,
+                referralBalance: 0
+            });
+            
+            showNotification('✅ تم تحويل أرباح الإحالات');
+            loadUserData(currentUserId);
+        }
+
+        function showTransactionsPage() {
+            const html = `
+                <div class="container">
+                    <div class="back-button" onclick="loadUserData('${currentUserId}')"><i class="fas fa-arrow-right"></i> العودة</div>
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-history"></i> المعاملات</div>
+                        
+                        <div class="transaction-filters">
+                            <div class="filter-btn active" onclick="filterTransactions('all')">الجميع</div>
+                            <div class="filter-btn" onclick="filterTransactions('deposits')">الإيداعات</div>
+                            <div class="filter-btn" onclick="filterTransactions('withdrawals')">السحوبات</div>
+                            <div class="filter-btn" onclick="filterTransactions('subscriptions')">الاشتراكات</div>
+                            <div class="filter-btn" onclick="filterTransactions('profits')">الأرباح</div>
+                        </div>
+
+                        <div id="filteredTransactions"></div>
+                    </div>
+                </div>
+            `;
+            renderApp(html);
+            loadFilteredTransactions('all');
+        }
+
+        async function loadFilteredTransactions(filter) {
+            const container = document.getElementById('filteredTransactions');
+            container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-pulse"></i><p>جاري التحميل...</p></div>';
+            
+            const depositsSnap = await db.ref('deposits').orderByChild('userId').equalTo(currentUserId).once('value');
+            const withdrawalsSnap = await db.ref('withdrawals').orderByChild('userId').equalTo(currentUserId).once('value');
+            
+            const deposits = depositsSnap.val() || {};
+            const withdrawals = withdrawalsSnap.val() || {};
+            
+            let allTransactions = [];
+            
+            for (let id in deposits) {
+                allTransactions.push({
+                    type: 'إيداع',
+                    subType: 'deposit',
+                    amount: deposits[id].amount,
+                    date: deposits[id].createdAt,
+                    status: deposits[id].status,
+                    plan: deposits[id].plan
+                });
+            }
+            
+            for (let id in withdrawals) {
+                allTransactions.push({
+                    type: 'سحب',
+                    subType: 'withdrawal',
+                    amount: withdrawals[id].amount,
+                    date: withdrawals[id].createdAt,
+                    status: withdrawals[id].status
+                });
+            }
+            
+            allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            let filtered = allTransactions;
+            if (filter === 'deposits') {
+                filtered = allTransactions.filter(t => t.subType === 'deposit');
+            } else if (filter === 'withdrawals') {
+                filtered = allTransactions.filter(t => t.subType === 'withdrawal');
+            } else if (filter === 'subscriptions') {
+                filtered = allTransactions.filter(t => t.plan);
+            } else if (filter === 'profits') {
+                filtered = [];
+            }
+            
+            let html = '<div class="transactions-list">';
+            filtered.forEach(t => {
+                const date = new Date(t.date).toLocaleDateString('ar-EG');
+                const statusText = t.status === 'pending' ? ' (قيد المراجعة)' : '';
+                const typeClass = t.type === 'إيداع' ? 'deposit' : 'withdraw';
+                const icon = t.type === 'إيداع' ? 'fa-arrow-down' : 'fa-arrow-up';
+                
+                html += `
+                    <div class="transaction-card">
+                        <div class="transaction-info">
+                            <div class="transaction-type ${typeClass}">
+                                <i class="fas ${icon}"></i>
+                                <span>${t.type}</span>
+                            </div>
+                            <div class="transaction-desc">${t.plan ? t.plan : ''}</div>
+                        </div>
+                        <div class="transaction-amount ${typeClass}">
+                            $${(t.amount || 0).toFixed(2)}${statusText}
+                            <div class="transaction-date">${date}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            container.innerHTML = html || '<div style="text-align:center; padding:20px;">لا توجد معاملات</div>';
+        }
+
+        function filterTransactions(filter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            loadFilteredTransactions(filter);
+        }
+
+        function showProfilePage() {
+            const capitalProgress = getCapitalProgress();
+            const welcomeGiftStatus = getWelcomeGiftStatus(currentUser);
+            
+            const html = `
+                <div class="container">
+                    <div class="back-button" onclick="loadUserData('${currentUserId}')"><i class="fas fa-arrow-right"></i> العودة</div>
+                    <div class="card">
+                        <div class="card-title"><i class="fas fa-user-circle"></i> معلومات حسابي</div>
+                        <div class="info-grid">
+                            <div class="info-item"><div class="label">الاسم</div><div class="value">${currentUser.name}</div></div>
+                            <div class="info-item"><div class="label">البريد</div><div class="value">${currentUser.email}</div></div>
+                            <div class="info-item"><div class="label">الحالة</div><div class="value" style="color:var(--success);">${currentUser.accountStatus}</div></div>
+                            <div class="info-item"><div class="label">الخطة</div><div class="value">${currentUser.plan || 'غير مشترك'} ${currentUser.planStatus === 'waiting' ? '(قيد المراجعة)' : ''}</div></div>
+                        </div>
+                        <div class="gift-status" style="display:flex; justify-content:space-between; margin-top:10px;">
+                            <span>حالة هدية الترحيب:</span>
+                            <span class="${welcomeGiftStatus.class}">${welcomeGiftStatus.text}</span>
+                        </div>
+                        
+                        ${currentUser.plan && currentUser.plan !== 'none' && currentUser.planStartDate && capitalProgress ? `
+                            <div class="capital-progress">
+                                <div class="progress-header">
+                                    <span>⏳ الوقت المتبقي لسحب رأس المال</span>
+                                    <span>${capitalProgress.canWithdraw ? '✅ متاح' : capitalProgress.daysLeft + ' يوم'}</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${capitalProgress.progress}%;"></div>
+                                </div>
+                                <div class="progress-days">
+                                    <span>${capitalProgress.progress}%</span> من المدة المطلوبة
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            renderApp(html);
+        }
+
+        function loadUserTransactions(userId) {
+            const list = document.getElementById('transactionsList');
+            if (!list) return;
+            
+            list.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-pulse"></i><p>جاري التحميل...</p></div>';
+            
+            Promise.all([
+                db.ref('deposits').orderByChild('userId').equalTo(userId).once('value'),
+                db.ref('withdrawals').orderByChild('userId').equalTo(userId).once('value')
+            ]).then(([depositsSnap, withdrawalsSnap]) => {
+                const deposits = depositsSnap.val() || {};
+                const withdrawals = withdrawalsSnap.val() || {};
+                
+                let html = '<div class="transactions-list">';
+                const allTransactions = [];
+                
+                for (let id in deposits) {
+                    allTransactions.push({
+                        type: 'إيداع',
+                        amount: deposits[id].amount,
+                        date: deposits[id].createdAt,
+                        status: deposits[id].status
+                    });
+                }
+                
+                for (let id in withdrawals) {
+                    allTransactions.push({
+                        type: 'سحب',
+                        amount: withdrawals[id].amount,
+                        date: withdrawals[id].createdAt,
+                        status: withdrawals[id].status
+                    });
+                }
+                
+                allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                allTransactions.slice(0, 5).forEach(t => {
+                    const date = new Date(t.date).toLocaleDateString('ar-EG');
+                    const statusText = t.status === 'pending' ? ' (قيد المراجعة)' : '';
+                    const typeClass = t.type === 'إيداع' ? 'deposit' : 'withdraw';
+                    const icon = t.type === 'إيداع' ? 'fa-arrow-down' : 'fa-arrow-up';
+                    
+                    html += `
+                        <div class="transaction-card">
+                            <div class="transaction-info">
+                                <div class="transaction-type ${typeClass}">
+                                    <i class="fas ${icon}"></i>
+                                    <span>${t.type}</span>
+                                </div>
+                                <div class="transaction-desc"></div>
+                            </div>
+                            <div class="transaction-amount ${typeClass}">
+                                $${(t.amount || 0).toFixed(2)}${statusText}
+                                <div class="transaction-date">${date}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                list.innerHTML = html || '<div style="text-align:center; padding:20px;">لا توجد معاملات</div>';
+            });
+        }
+
+        function logout() {
+            currentUser = null;
+            currentUserId = null;
+            localStorage.removeItem('currentUserId');
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            showAuthPage();
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('✅ تم النسخ');
+            }).catch(() => {
+                showNotification('❌ فشل النسخ', true);
+            });
+        }
+    </script>
+</body>
+</html>
